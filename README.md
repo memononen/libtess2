@@ -1,6 +1,6 @@
 Libtess2
 ========
-Version 1.0
+Version 1.0.1
 
 
 This is refactored version of the original libtess which comes with the GLU reference implementation. The code is good quality polygon tesselator and triangulator. The original code comes with rather horrible interface and its' performance suffers from lots of small memory allocations. The main point of the refactoring has been the interface and memory allocation scheme.
