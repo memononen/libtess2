@@ -102,7 +102,7 @@ enum TessWindingRule
 //         const TESSindex count = elems[i * 2 + 1];
 //         glBegin(GL_LINE_LOOP);
 //         for (int j = 0; j < count; j++) {
-//             glVertex2fv(&verts[(base+count) * vertexSize]);
+//             glVertex2fv(&verts[(base+j) * vertexSize]);
 //         }
 //         glEnd();
 //     }
@@ -120,6 +120,8 @@ typedef struct TESStesselator TESStesselator;
 typedef struct TESSalloc TESSalloc;
 
 #define TESS_UNDEF (~(TESSindex)0)
+
+#define TESS_NOTUSED(v) do { (void)(1 ? (void)0 : ( (void)(v) ) ); } while(0)
 
 // Custom memory allocator interface.
 // The internal memory allocator allocates mesh edges, vertices and faces
@@ -150,9 +152,19 @@ struct TESSalloc
 	int regionBucketSize;		// 256
 	int extraVertices;			// Number of extra vertices allocated for the priority queue.
 };
-	
+
+
+//
+// Example use:
+//
+//
+//
+//
+
 // tessNewTess() - Creates a new tesselator.
 // Use tessDeleteTess() to delete the tesselator.
+// Parameters:
+//   alloc - pointer to a filled TESSalloc struct or NULL to use default malloc based allocator.
 // Returns:
 //   new tesselator object.
 TESStesselator* tessNewTess( TESSalloc* alloc );

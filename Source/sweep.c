@@ -438,6 +438,7 @@ static void GetIntersectData( TESStesselator *tess, TESSvertex *isect,
  */
 {
 	TESSreal weights[4];
+	TESS_NOTUSED( tess );
 
 	isect->coords[0] = isect->coords[1] = isect->coords[2] = 0;
 	isect->idx = TESS_UNDEF;
