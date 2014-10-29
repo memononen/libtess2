@@ -52,7 +52,7 @@ void poolFree( void* userData, void* ptr )
 
 
 // Undefine this to see non-interactive heap allocator version.
-#define USE_POOL 1
+#define USE_POOL 0
 
 
 int run = 1;
