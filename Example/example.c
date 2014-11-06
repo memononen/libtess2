@@ -286,23 +286,23 @@ int main(int argc, char *argv[])
 				const int* elems = tessGetElements(tess);
 				const int nelems = tessGetElementCount(tess);
 
-				if (nverts > nvflags)
-				{
-					if (vflags)
-						free(vflags);
-					nvflags = nverts;
-					vflags = (unsigned char*)malloc(sizeof(unsigned char)*nvflags);
-				}
-				
-				if (vflags)
-				{
-					// Vertex indices describe the order the indices were added and can be used
-					// to map the tesselator output to input. Vertices marked as TESS_UNDEF
-					// are the ones that were created at the intersection of segments.
-					// That is, if vflags is set it means that the vertex comes from intersegment.
-					for (i = 0; i < nverts; ++i)
-						vflags[i] = vinds[i] == TESS_UNDEF ? 1 : 0;
-				}
+//				if (nverts > nvflags)
+//				{
+//					if (vflags)
+//						free(vflags);
+//					nvflags = nverts;
+//					vflags = (unsigned char*)malloc(sizeof(unsigned char)*nvflags);
+//				}
+//				
+//				if (vflags)
+//				{
+//					// Vertex indices describe the order the indices were added and can be used
+//					// to map the tesselator output to input. Vertices marked as TESS_UNDEF
+//					// are the ones that were created at the intersection of segments.
+//					// That is, if vflags is set it means that the vertex comes from intersegment.
+//					for (i = 0; i < nverts; ++i)
+//						vflags[i] = vinds[i] == TESS_UNDEF ? 1 : 0;
+//				}
 				
 				for (i = 0; i < nelems; ++i)
 				{
