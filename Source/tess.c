@@ -385,41 +385,53 @@ int tessMeshTessellateInterior( TESSmesh *mesh )
 }
 
 
+typedef struct EdgeStackNode EdgeStackNode;
+typedef struct EdgeStack EdgeStack;
+
 struct EdgeStackNode {
 	TESShalfEdge *edge;
-	struct EdgeStackNode *next;
+	EdgeStackNode *next;
 };
 
 struct EdgeStack {
-	struct EdgeStackNode *top;
+	EdgeStackNode *top;
+	struct BucketAlloc *nodeBucket;
 };
 
-void stackInit(struct EdgeStack *stack)
+int stackInit( EdgeStack *stack, TESSalloc *alloc )
 {
-    stack->top = NULL;
+	stack->top = NULL;
+	stack->nodeBucket = createBucketAlloc( alloc, "CDT nodes", sizeof(EdgeStackNode), 512 );
+	return stack->nodeBucket != NULL;
 }
 
-int stackEmpty(struct EdgeStack *stack)
+void stackDelete( EdgeStack *stack )
+{
+    deleteBucketAlloc( stack->nodeBucket );
+}
+
+int stackEmpty( EdgeStack *stack )
 {
 	return stack->top == NULL;
 }
 
-void stackPush(struct EdgeStack *stack, TESShalfEdge *e)
+void stackPush( EdgeStack *stack, TESShalfEdge *e )
 {
-	struct EdgeStackNode *node = malloc(sizeof(struct EdgeStackNode));
+	EdgeStackNode *node = (EdgeStackNode *)bucketAlloc( stack->nodeBucket );
+	if ( ! node ) return;
 	node->edge = e;
 	node->next = stack->top;
 	stack->top = node;
 }
 
-TESShalfEdge *stackPop(struct EdgeStack *stack)
+TESShalfEdge *stackPop( EdgeStack *stack )
 {
-    TESShalfEdge *e = NULL;
-	struct EdgeStackNode *node = stack->top;
+	TESShalfEdge *e = NULL;
+	EdgeStackNode *node = stack->top;
 	if (node) {
 		stack->top = node->next;
 		e = node->edge;
-            free(node);
+		bucketFree( stack->nodeBucket, node );
 	}
 	return e;
 }
@@ -428,7 +440,7 @@ TESShalfEdge *stackPop(struct EdgeStack *stack)
 	Starting with a valid triangulation, uses the Edge Flip algorithm to
 	refine the triangulation into a Constrained Delaunay Triangulation.
 */
-int tessMeshRefineDelaunay( TESSmesh *mesh )
+int tessMeshRefineDelaunay( TESSmesh *mesh, TESSalloc *alloc )
 {
 	/* At this point, we have a valid, but not optimal, triangulation.
 		 We refine the triangulation using the Edge Flip algorithm */
@@ -439,8 +451,8 @@ int tessMeshRefineDelaunay( TESSmesh *mesh )
 	 3) insert all dual edges into a queue
 */
 	TESSface *f;
-	struct EdgeStack stack;
-    stackInit(&stack);
+	EdgeStack stack;
+	stackInit(&stack, alloc);
 	TESShalfEdge *e;
 	TESShalfEdge *edges[4];
 	for( f = mesh->fHead.next; f != &mesh->fHead; f = f->next ) {
@@ -453,7 +465,7 @@ int tessMeshRefineDelaunay( TESSmesh *mesh )
 			} while (e != f->anEdge);
 		}
 	}
-
+	
 	// Pop stack until we find a reversed edge
 	// Flip the reversed edge, and insert any of the four opposite edges
 	// which are internal and not already in the stack (!marked)
@@ -475,6 +487,8 @@ int tessMeshRefineDelaunay( TESSmesh *mesh )
 			}
 		}
 	}
+	
+	stackDelete(&stack);
 
 	return 1;
 }
@@ -1020,7 +1034,7 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 	} else {
 		rc = tessMeshTessellateInterior( mesh ); 
 		if (elementType == TESS_CONSTRAINED_DELAUNAY_TRIANGLES) {
-			rc = tessMeshRefineDelaunay( mesh );
+			rc = tessMeshRefineDelaunay( mesh, &tess->alloc );
 			elementType = TESS_POLYGONS;
 			polySize = 3;
 		}
