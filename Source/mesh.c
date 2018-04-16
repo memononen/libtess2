@@ -699,54 +699,52 @@ static int CountFaceVerts( TESSface *f )
 
 int tessMeshMergeConvexFaces( TESSmesh *mesh, int maxVertsPerFace )
 {
-	TESSface *f;
-	TESShalfEdge *eCur, *eNext, *eSym;
-	TESSvertex *vStart;
-	int curNv, symNv;
+	TESShalfEdge *e, *eNext, *eSym;
+	TESShalfEdge *eHead = &mesh->eHead;
+	TESSvertex *va, *vb, *vc, *vd, *ve, *vf;
+	int leftNv, rightNv;
 	
-	for( f = mesh->fHead.next; f != &mesh->fHead; f = f->next )
+	for( e = eHead->next; e != eHead; e = eNext )
 	{
-		// Skip faces which are outside the result.
-		if( !f->inside )
+		eNext = e->next;
+		eSym = e->Sym;
+		if( !eSym )
+			continue;
+		
+		// Both faces must be inside
+		if( !e->Lface || !e->Lface->inside )
+			continue;
+		if( !eSym->Lface || !eSym->Lface->inside )
 			continue;
 
-		eCur = f->anEdge;
-		vStart = eCur->Org;
-			
-		while (1)
-		{
-			eNext = eCur->Lnext;
-			eSym = eCur->Sym;
+		leftNv = CountFaceVerts( e->Lface );
+		rightNv = CountFaceVerts( eSym->Lface );
+		if( (leftNv+rightNv-2) > maxVertsPerFace )
+			continue;
 
-			// Try to merge if the neighbour face is valid.
-			if( eSym && eSym->Lface && eSym->Lface->inside )
-			{
-				// Try to merge the neighbour faces if the resulting polygons
-				// does not exceed maximum number of vertices.
-				curNv = CountFaceVerts( f );
-				symNv = CountFaceVerts( eSym->Lface );
-				if( (curNv+symNv-2) <= maxVertsPerFace )
-				{
-					// Merge if the resulting poly is convex.
-					if( VertCCW( eCur->Lprev->Org, eCur->Org, eSym->Lnext->Lnext->Org ) &&
-						VertCCW( eSym->Lprev->Org, eSym->Org, eCur->Lnext->Lnext->Org ) )
-					{
-						eNext = eSym->Lnext;
-						if( !tessMeshDelete( mesh, eSym ) )
-							return 0;
-						eCur = 0;
-					}
-				}
-			}
-			
-			if( eCur && eCur->Lnext->Org == vStart )
-				break;
-				
-			// Continue to next edge.
-			eCur = eNext;
+		// Merge if the resulting poly is convex.
+		//
+		//      vf--ve--vd
+		//          ^|
+		// left   e ||   right
+		//          |v
+		//      va--vb--vc
+
+		va = e->Lprev->Org;
+		vb = e->Org;
+		vc = e->Sym->Lnext->Dst;
+
+		vd = e->Sym->Lprev->Org;
+		ve = e->Sym->Org;
+		vf = e->Lnext->Dst;
+
+		if( VertCCW( va, vb, vc ) && VertCCW( vd, ve, vf ) ) {
+			if( e == eNext || e == eNext->Sym ) { eNext = eNext->next; }
+			if( !tessMeshDelete( mesh, e ) )
+				return 0;
 		}
 	}
-	
+
 	return 1;
 }
 
