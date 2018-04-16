@@ -56,6 +56,7 @@ void poolFree( void* userData, void* ptr )
 
 
 int run = 1;
+int cdt = 0;
 
 static void key(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -65,6 +66,8 @@ static void key(GLFWwindow* window, int key, int scancode, int action, int mods)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 		run = !run;
+	if (key == GLFW_KEY_C && action == GLFW_PRESS)
+		cdt = !cdt;
 }
 
 int main(int argc, char *argv[])
@@ -79,14 +82,15 @@ int main(int argc, char *argv[])
 	float t = 0.0f, pt = 0.0f;
 	TESSalloc ma;
 	TESStesselator* tess = 0;
-	const int nvp = 6;
+	const int nvp = 3;
 	unsigned char* vflags = 0;
-	int nvflags = 0;
 #ifdef USE_POOL
 	struct MemPool pool;
 	unsigned char mem[1024*1024];
+	int nvflags = 0;
 #else
 	int allocated = 0;
+	double t0 = 0, t1 = 0;
 #endif
 	TESS_NOTUSED(argc);
 	TESS_NOTUSED(argv);
@@ -104,7 +108,7 @@ int main(int argc, char *argv[])
 	if (!fg) return -1;
 
 	printf("go...\n");
-	
+
 	// Flip y
 	for (it = bg; it != NULL; it = it->next)
 		for (i = 0; i < it->npts; ++i)
@@ -138,7 +142,7 @@ int main(int argc, char *argv[])
 			it->pts[i*2+1] -= cy;
 		}
 	}
-			
+
 	// Find BG bounds.
 	bounds[0] = bounds[2] = bg->pts[0];
 	bounds[1] = bounds[3] = bg->pts[1];
@@ -154,7 +158,7 @@ int main(int argc, char *argv[])
 			if (y > bounds[3]) bounds[3] = y;
 		}
 	}
-		
+
 #ifdef USE_POOL
 
 	pool.size = 0;
@@ -168,6 +172,8 @@ int main(int argc, char *argv[])
 
 #else
 
+	t0 = glfwGetTime();
+
 	memset(&ma, 0, sizeof(ma));
 	ma.memalloc = stdAlloc;
 	ma.memfree = stdFree;
@@ -177,6 +183,8 @@ int main(int argc, char *argv[])
 	tess = tessNewTess(&ma);
 	if (!tess)
 		return -1;
+
+	tessSetOption(tess, TESS_CONSTRAINED_DELAUNAY_TRIANGULATION, 1);
 
 	// Offset the foreground shape to center of the bg.
 	offx = (bounds[2]+bounds[0])/2;
@@ -189,7 +197,7 @@ int main(int argc, char *argv[])
 			it->pts[i*2+1] += offy;
 		}
 	}
-	
+
 	// Add contours.
 	for (it = bg; it != NULL; it = it->next)
 		tessAddContour(tess, 2, it->pts, sizeof(float)*2, it->npts);
@@ -197,10 +205,14 @@ int main(int argc, char *argv[])
 		tessAddContour(tess, 2, it->pts, sizeof(float)*2, it->npts);
 	if (!tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS, nvp, 2, 0))
 		return -1;
+
+	t1 = glfwGetTime();
+
+	printf("Time: %.3f ms\n", (t1 - t0) * 1000.0f);
 	printf("Memory used: %.1f kB\n", allocated/1024.0f);
-	
+
 #endif
-	
+
 	mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	width = mode->width - 40;
 	height = mode->height - 80;
@@ -221,17 +233,27 @@ int main(int argc, char *argv[])
 	view[2] = cx + w*1.2f;
 	view[1] = cy - w*1.2f*(float)height/(float)width;
 	view[3] = cy + w*1.2f*(float)height/(float)width;
-		
+
 	glfwSetTime(0);
 
 	while (!glfwWindowShouldClose(window))
 	{
-		float ct = (float)glfwGetTime();
+		int winWidth, winHeight;
+		int fbWidth, fbHeight;
+		float pxr, ct;
+
+		glfwGetWindowSize(window, &winWidth, &winHeight);
+		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+
+		// Calculate pixel ration for hi-dpi devices.
+		pxr = (float)fbWidth / (float)winWidth;
+
+		ct = (float)glfwGetTime();
 		if (run) t += ct - pt;
 		pt = ct;
-		
+
 		// Update and render
-		glViewport(0, 0, width, height);
+		glViewport(0, 0, fbWidth, fbHeight);
 		glClearColor(0.3f, 0.3f, 0.32f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_BLEND);
@@ -251,9 +273,11 @@ int main(int argc, char *argv[])
 		tess = tessNewTess(&ma);
 		if (tess)
 		{
+			tessSetOption(tess, TESS_CONSTRAINED_DELAUNAY_TRIANGULATION, cdt);
+
 			offx = (view[2]+view[0])/2 + sinf(t) * (view[2]-view[0])/2;
 			offy = (view[3]+view[1])/2 + cosf(t*3.13f) * (view[3]-view[1])/6;
-			
+
 			for (it = fg; it != NULL; it = it->next)
 			{
 				for (i = 0; i < it->npts; ++i)
@@ -293,7 +317,7 @@ int main(int argc, char *argv[])
 					nvflags = nverts;
 					vflags = (unsigned char*)malloc(sizeof(unsigned char)*nvflags);
 				}
-				
+
 				if (vflags)
 				{
 					// Vertex indices describe the order the indices were added and can be used
@@ -303,7 +327,7 @@ int main(int argc, char *argv[])
 					for (i = 0; i < nverts; ++i)
 						vflags[i] = vinds[i] == TESS_UNDEF ? 1 : 0;
 				}
-				
+
 				for (i = 0; i < nelems; ++i)
 				{
 					int b = elems[i*2];
@@ -314,9 +338,9 @@ int main(int argc, char *argv[])
 					tess = 0;
 			}
 			else
-				tess = 0;				
+				tess = 0;
 		}
-#endif		
+#endif
 
 		// Draw tesselated pieces.
 		if (tess)
@@ -326,7 +350,7 @@ int main(int argc, char *argv[])
 			const int* elems = tessGetElements(tess);
 			const int nverts = tessGetVertexCount(tess);
 			const int nelems = tessGetElementCount(tess);
-			
+
 			// Draw polygons.
 			glColor4ub(255,255,255,128);
 			for (i = 0; i < nelems; ++i)
@@ -337,7 +361,10 @@ int main(int argc, char *argv[])
 					glVertex2f(verts[p[j]*2], verts[p[j]*2+1]);
 				glEnd();
 			}
-			
+
+			glLineWidth(1.0f * pxr);
+			glPointSize(3.0f * pxr);
+
 			glColor4ub(0,0,0,16);
 			for (i = 0; i < nelems; ++i)
 			{
@@ -347,9 +374,8 @@ int main(int argc, char *argv[])
 					glVertex2f(verts[p[j]*2], verts[p[j]*2+1]);
 				glEnd();
 			}
-			
+
 			glColor4ub(0,0,0,128);
-			glPointSize(3.0f);
 			glBegin(GL_POINTS);
 			for (i = 0; i < nverts; ++i)
 			{
@@ -360,21 +386,22 @@ int main(int argc, char *argv[])
 				glVertex2f(verts[i*2], verts[i*2+1]);
 			}
 			glEnd();
+
 			glPointSize(1.0f);
 		}
-		
+
 		glEnable(GL_DEPTH_TEST);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	
+
 	if (tess) tessDeleteTess(tess);
-	
+
 	if (vflags)
 		free(vflags);
-	
-	svgDelete(bg);	
-	svgDelete(fg);	
+
+	svgDelete(bg);
+	svgDelete(fg);
 
 	glfwTerminate();
 	return 0;
