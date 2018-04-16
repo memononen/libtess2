@@ -911,7 +911,7 @@ void OutputContours( TESStesselator *tess, TESSmesh *mesh, int vertexSize )
 }
 
 void tessAddContour( TESStesselator *tess, int size, const void* vertices,
-					int stride, int numVertices )
+					int stride, int numVertices, int reversed )
 {
 	const unsigned char *src = (const unsigned char*)vertices;
 	TESShalfEdge *e;
@@ -973,8 +973,8 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 		* vertices in such an order that a CCW contour will add +1 to
 		* the winding number of the region inside the contour.
 		*/
-		e->winding = 1;
-		e->Sym->winding = -1;
+        e->winding = (reversed) ? -1 : 1;
+        e->Sym->winding = (reversed) ? 1 : -1;
 	}
 }
 
