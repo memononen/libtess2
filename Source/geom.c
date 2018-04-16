@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -266,16 +266,13 @@ void tesedgeIntersect( TESSvertex *o1, TESSvertex *d1,
  */
 TESSreal calcAngle( TESSvertex *v0, TESSvertex *v1, TESSvertex *v2 )
 {
-	TESSreal num;
-	TESSreal den;
-	TESSreal a[2];
-	TESSreal b[2];
-	a[0] = v2->s - v1->s;
-	a[1] = v2->t - v1->t;
-	b[0] = v0->s - v1->s;
-	b[1] = v0->t - v1->t;
-	num = a[0] * b[0] + a[1] * b[1];
-	den = sqrt( a[0] * a[0] + a[1] * a[1] ) * sqrt( b[0] * b[0] + b[1] * b[1] );
+	TESSreal num, den, ax, ay, bx, by;
+	ax = v2->s - v1->s;
+	ay = v2->t - v1->t;
+	bx = v0->s - v1->s;
+	by = v0->t - v1->t;
+	num = ax * bx + ay * by;
+	den = sqrt( ax * ax + ay * ay ) * sqrt( bx * bx + by * by );
 	if ( den > 0.0 ) num /= den;
 	if ( num < -1.0 ) num = -1.0;
 	if ( num >  1.0 ) num =  1.0;
@@ -288,5 +285,5 @@ TESSreal calcAngle( TESSvertex *v0, TESSvertex *v1, TESSvertex *v2 )
 int tesedgeIsLocallyDelaunay( TESShalfEdge *e )
 {
 	return (calcAngle(e->Lnext->Org, e->Lnext->Lnext->Org, e->Org) +
-					calcAngle(e->Sym->Lnext->Org, e->Sym->Lnext->Lnext->Org, e->Sym->Org)) < (M_PI + 0.01);
+			calcAngle(e->Sym->Lnext->Org, e->Sym->Lnext->Lnext->Org, e->Sym->Org)) < (M_PI + 0.01);
 }

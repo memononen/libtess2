@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -106,17 +106,22 @@ enum TessWindingRule
 //         }
 //         glEnd();
 //     }
-//
-// TESS_CONSTRAINED_DELAUNAY_TRIANGLES
-//   Similar to TESS_POLYGONS, but we output only triangles and we attempt to provide a valid
-//   Constrained Delaunay triangulation.
 
 enum TessElementType
 {
 	TESS_POLYGONS,
 	TESS_CONNECTED_POLYGONS,
 	TESS_BOUNDARY_CONTOURS,
-	TESS_CONSTRAINED_DELAUNAY_TRIANGLES
+};
+
+
+// TESS_CONSTRAINED_DELAUNAY_TRIANGULATION
+//   If enabled, the initial triagulation is improved with non-robust Constrained Delayney triangulation.
+//   Disable by default.
+
+enum TessOption
+{
+	TESS_CONSTRAINED_DELAUNAY_TRIANGULATION,
 };
 
 typedef float TESSreal;
@@ -138,12 +143,12 @@ typedef struct TESSalloc TESSalloc;
 // how often to allocate memory from the system versus how much extra space the system
 // should allocate. Reasonable defaults are show in commects below, they will be used if
 // the bucket sizes are zero.
-// 
+//
 // The use may left the memrealloc to be null. In that case, the tesselator will not try to
 // dynamically grow int's internal arrays. The tesselator only needs the reallocation when it
 // has found intersecting segments and needs to add new vertex. This defency can be cured by
 // allocating some extra vertices beforehand. The 'extraVertices' variable allows to specify
-// number of expected extra vertices.  
+// number of expected extra vertices.
 struct TESSalloc
 {
 	void *(*memalloc)( void *userData, unsigned int size );
@@ -189,12 +194,18 @@ void tessDeleteTess( TESStesselator *tess );
 //   count - number of vertices in contour.
 void tessAddContour( TESStesselator *tess, int size, const void* pointer, int stride, int count );
 
+// tessSetOption() - Toggles optional tessellation parameters
+// Parameters:
+//  option - one of TessOption
+//  value - 1 if enabled, 0 if disabled.
+void tessSetOption( TESStesselator *tess, int option, int value );
+
 // tessTesselate() - tesselate contours.
 // Parameters:
 //   tess - pointer to tesselator object.
 //   windingRule - winding rules used for tesselation, must be one of TessWindingRule.
 //   elementType - defines the tesselation result element type, must be one of TessElementType.
-//   polySize - defines maximum vertices per polygons if output is polygons. If elementType is TESS_CONSTRAINED_DELAUNAY_TRIANGLES, this parameter is ignored.
+//   polySize - defines maximum vertices per polygons if output is polygons.
 //   vertexSize - defines the number of coordinates in tesselation result vertex, must be 2 or 3.
 //   normal - defines the normal of the input contours, of null the normal is calculated automatically.
 // Returns:
@@ -212,7 +223,7 @@ const TESSreal* tessGetVertices( TESStesselator *tess );
 // Every point added using tessAddContour() will get a new index starting at 0.
 // New vertices generated at the intersections of segments are assigned value TESS_UNDEF.
 const TESSindex* tessGetVertexIndices( TESStesselator *tess );
-	
+
 // tessGetElementCount() - Returns number of elements in the the tesselated output.
 int tessGetElementCount( TESStesselator *tess );
 
