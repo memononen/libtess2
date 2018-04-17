@@ -987,9 +987,9 @@ void tessSetOption( TESStesselator *tess, int option, int value )
 	case TESS_CONSTRAINED_DELAUNAY_TRIANGULATION:
 		tess->processCDT = value > 0 ? 1 : 0;
 		break;
-    case TESS_REVERSE_CONTOURS:
-        tess->reverseContours = value > 0 ? 1 : 0;
-        break;
+	case TESS_REVERSE_CONTOURS:
+		tess->reverseContours = value > 0 ? 1 : 0;
+		break;
 	}
 }
 

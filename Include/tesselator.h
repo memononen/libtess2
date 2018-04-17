@@ -126,7 +126,7 @@ enum TessElementType
 enum TessOption
 {
 	TESS_CONSTRAINED_DELAUNAY_TRIANGULATION,
-    TESS_REVERSE_CONTOURS
+	TESS_REVERSE_CONTOURS
 };
 
 typedef float TESSreal;
