@@ -118,10 +118,15 @@ enum TessElementType
 // TESS_CONSTRAINED_DELAUNAY_TRIANGULATION
 //   If enabled, the initial triagulation is improved with non-robust Constrained Delayney triangulation.
 //   Disable by default.
+//
+// TESS_REVERSE_CONTOURS
+//   If enabled, tessAddContour() will treat CW contours as CCW and vice versa
+//   Disabled by default.
 
 enum TessOption
 {
 	TESS_CONSTRAINED_DELAUNAY_TRIANGULATION,
+    TESS_REVERSE_CONTOURS
 };
 
 typedef float TESSreal;
@@ -192,7 +197,7 @@ void tessDeleteTess( TESStesselator *tess );
 //   pointer - pointer to the first coordinate of the first vertex in the array.
 //   stride - defines offset in bytes between consecutive vertices.
 //   count - number of vertices in contour.
-void tessAddContour( TESStesselator *tess, int size, const void* pointer, int stride, int count, int reversed );
+void tessAddContour( TESStesselator *tess, int size, const void* pointer, int stride, int count );
 
 // tessSetOption() - Toggles optional tessellation parameters
 // Parameters:

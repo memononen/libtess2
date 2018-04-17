@@ -629,6 +629,8 @@ TESStesselator* tessNewTess( TESSalloc* alloc )
 	tess->bmax[0] = 0;
 	tess->bmax[1] = 0;
 
+    tess->reverseContours = 0;
+    
 	tess->windingRule = TESS_WINDING_ODD;
 
 	if (tess->alloc.regionBucketSize < 16)
@@ -911,7 +913,7 @@ void OutputContours( TESStesselator *tess, TESSmesh *mesh, int vertexSize )
 }
 
 void tessAddContour( TESStesselator *tess, int size, const void* vertices,
-					int stride, int numVertices, int reversed )
+					int stride, int numVertices )
 {
 	const unsigned char *src = (const unsigned char*)vertices;
 	TESShalfEdge *e;
@@ -973,8 +975,8 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 		* vertices in such an order that a CCW contour will add +1 to
 		* the winding number of the region inside the contour.
 		*/
-        e->winding = (reversed) ? -1 : 1;
-        e->Sym->winding = (reversed) ? 1 : -1;
+        e->winding = (tess->reverseContours) ? -1 : 1;
+        e->Sym->winding = (tess->reverseContours) ? 1 : -1;
 	}
 }
 
@@ -985,6 +987,9 @@ void tessSetOption( TESStesselator *tess, int option, int value )
 	case TESS_CONSTRAINED_DELAUNAY_TRIANGULATION:
 		tess->processCDT = value > 0 ? 1 : 0;
 		break;
+    case TESS_REVERSE_CONTOURS:
+        tess->reverseContours = value > 0 ? 1 : 0;
+        break;
 	}
 }
 
