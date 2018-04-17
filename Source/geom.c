@@ -262,26 +262,26 @@ void tesedgeIntersect( TESSvertex *o1, TESSvertex *d1,
 }
 
 TESSreal inCircle( TESSvertex *v, TESSvertex *v0, TESSvertex *v1, TESSvertex *v2 ) {
-    TESSreal adx, ady, bdx, bdy, cdx, cdy;
-    TESSreal abdet, bcdet, cadet;
-    TESSreal alift, blift, clift;
-    
-    adx = v0->s - v->s;
-    ady = v0->t - v->t;
-    bdx = v1->s - v->s;
-    bdy = v1->t - v->t;
-    cdx = v2->s - v->s;
-    cdy = v2->t - v->t;
-    
-    abdet = adx * bdy - bdx * ady;
-    bcdet = bdx * cdy - cdx * bdy;
-    cadet = cdx * ady - adx * cdy;
-    
-    alift = adx * adx + ady * ady;
-    blift = bdx * bdx + bdy * bdy;
-    clift = cdx * cdx + cdy * cdy;
-    
-    return alift * bcdet + blift * cadet + clift * abdet;
+	TESSreal adx, ady, bdx, bdy, cdx, cdy;
+	TESSreal abdet, bcdet, cadet;
+	TESSreal alift, blift, clift;
+
+	adx = v0->s - v->s;
+	ady = v0->t - v->t;
+	bdx = v1->s - v->s;
+	bdy = v1->t - v->t;
+	cdx = v2->s - v->s;
+	cdy = v2->t - v->t;
+
+	abdet = adx * bdy - bdx * ady;
+	bcdet = bdx * cdy - cdx * bdy;
+	cadet = cdx * ady - adx * cdy;
+
+	alift = adx * adx + ady * ady;
+	blift = bdx * bdx + bdy * bdy;
+	clift = cdx * cdx + cdy * cdy;
+
+	return alift * bcdet + blift * cadet + clift * abdet;
 }
 
 /*
@@ -289,5 +289,5 @@ TESSreal inCircle( TESSvertex *v, TESSvertex *v0, TESSvertex *v1, TESSvertex *v2
  */
 int tesedgeIsLocallyDelaunay( TESShalfEdge *e )
 {
-    return inCircle(e->Sym->Lnext->Lnext->Org, e->Lnext->Org, e->Lnext->Lnext->Org, e->Org) < 0;
+	return inCircle(e->Sym->Lnext->Lnext->Org, e->Lnext->Org, e->Lnext->Lnext->Org, e->Org) < 0;
 }
