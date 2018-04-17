@@ -629,7 +629,7 @@ TESStesselator* tessNewTess( TESSalloc* alloc )
 	tess->bmax[0] = 0;
 	tess->bmax[1] = 0;
 
-    tess->reverseContours = 0;
+	tess->reverseContours = 0;
     
 	tess->windingRule = TESS_WINDING_ODD;
 
@@ -975,8 +975,8 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 		* vertices in such an order that a CCW contour will add +1 to
 		* the winding number of the region inside the contour.
 		*/
-        e->winding = (tess->reverseContours) ? -1 : 1;
-        e->Sym->winding = (tess->reverseContours) ? 1 : -1;
+        e->winding = tess->reverseContours ? -1 : 1;
+        e->Sym->winding = tess->reverseContours ? 1 : -1;
 	}
 }
 
