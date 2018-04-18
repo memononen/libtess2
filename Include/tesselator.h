@@ -118,10 +118,15 @@ enum TessElementType
 // TESS_CONSTRAINED_DELAUNAY_TRIANGULATION
 //   If enabled, the initial triagulation is improved with non-robust Constrained Delayney triangulation.
 //   Disable by default.
+//
+// TESS_REVERSE_CONTOURS
+//   If enabled, tessAddContour() will treat CW contours as CCW and vice versa
+//   Disabled by default.
 
 enum TessOption
 {
 	TESS_CONSTRAINED_DELAUNAY_TRIANGULATION,
+	TESS_REVERSE_CONTOURS
 };
 
 typedef float TESSreal;
