@@ -261,22 +261,27 @@ void tesedgeIntersect( TESSvertex *o1, TESSvertex *d1,
 	}
 }
 
-/*
-	Calculate the angle between v1-v2 and v1-v0
- */
-TESSreal calcAngle( TESSvertex *v0, TESSvertex *v1, TESSvertex *v2 )
-{
-	TESSreal num, den, ax, ay, bx, by;
-	ax = v2->s - v1->s;
-	ay = v2->t - v1->t;
-	bx = v0->s - v1->s;
-	by = v0->t - v1->t;
-	num = ax * bx + ay * by;
-	den = sqrt( ax * ax + ay * ay ) * sqrt( bx * bx + by * by );
-	if ( den > 0.0 ) num /= den;
-	if ( num < -1.0 ) num = -1.0;
-	if ( num >  1.0 ) num =  1.0;
-	return acos( num );
+TESSreal inCircle( TESSvertex *v, TESSvertex *v0, TESSvertex *v1, TESSvertex *v2 ) {
+	TESSreal adx, ady, bdx, bdy, cdx, cdy;
+	TESSreal abdet, bcdet, cadet;
+	TESSreal alift, blift, clift;
+
+	adx = v0->s - v->s;
+	ady = v0->t - v->t;
+	bdx = v1->s - v->s;
+	bdy = v1->t - v->t;
+	cdx = v2->s - v->s;
+	cdy = v2->t - v->t;
+
+	abdet = adx * bdy - bdx * ady;
+	bcdet = bdx * cdy - cdx * bdy;
+	cadet = cdx * ady - adx * cdy;
+
+	alift = adx * adx + ady * ady;
+	blift = bdx * bdx + bdy * bdy;
+	clift = cdx * cdx + cdy * cdy;
+
+	return alift * bcdet + blift * cadet + clift * abdet;
 }
 
 /*
@@ -284,6 +289,5 @@ TESSreal calcAngle( TESSvertex *v0, TESSvertex *v1, TESSvertex *v2 )
  */
 int tesedgeIsLocallyDelaunay( TESShalfEdge *e )
 {
-	return (calcAngle(e->Lnext->Org, e->Lnext->Lnext->Org, e->Org) +
-			calcAngle(e->Sym->Lnext->Org, e->Sym->Lnext->Lnext->Org, e->Sym->Org)) < (M_PI + 0.01);
+	return inCircle(e->Sym->Lnext->Lnext->Org, e->Lnext->Org, e->Lnext->Lnext->Org, e->Org) < 0;
 }
