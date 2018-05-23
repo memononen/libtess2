@@ -632,6 +632,7 @@ TESStesselator* tessNewTess( TESSalloc* alloc )
 	tess->reverseContours = 0;
     
 	tess->windingRule = TESS_WINDING_ODD;
+	tess->processCDT = 0;
 
 	if (tess->alloc.regionBucketSize < 16)
 		tess->alloc.regionBucketSize = 16;
