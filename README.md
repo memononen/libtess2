@@ -1,3 +1,6 @@
+*This project is not actively maintained.*
+
+
 Libtess2
 ========
 Version 1.0.1
