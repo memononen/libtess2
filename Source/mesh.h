@@ -139,6 +139,10 @@ struct TESShalfEdge {
 	TESSvertex *Org;       /* origin vertex (Overtex too long) */
 	TESSface *Lface;     /* left face */
 
+    /* Spline patch: edges are labelled with idx [i, i+1] (from, to) */
+    TESSindex idx0;
+    TESSindex idx1;
+
 	/* Internal data (keep hidden) */
 	ActiveRegion *activeRegion;  /* a region with this upper edge (sweep.c) */
 	int winding;    /* change in winding number when crossing

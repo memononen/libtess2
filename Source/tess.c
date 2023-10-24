@@ -653,6 +653,8 @@ TESStesselator* tessNewTess( TESSalloc* alloc )
 	tess->elements = 0;
 	tess->elementCount = 0;
 
+    tess->useIndexRange = 0;
+
 	return tess;
 }
 
@@ -833,11 +835,13 @@ void OutputContours( TESStesselator *tess, TESSmesh *mesh, int vertexSize )
 	TESSface *f = 0;
 	TESShalfEdge *edge = 0;
 	TESShalfEdge *start = 0;
+    TESShalfEdge *prev = 0;
 	TESSreal *verts = 0;
 	TESSindex *elements = 0;
 	TESSindex *vertInds = 0;
 	int startVert = 0;
 	int vertCount = 0;
+    int allocatedVertices = 0;
 
 	tess->vertexCount = 0;
 	tess->elementCount = 0;
@@ -873,8 +877,17 @@ void OutputContours( TESStesselator *tess, TESSmesh *mesh, int vertexSize )
 		return;
 	}
 
-	tess->vertexIndices = (TESSindex*)tess->alloc.memalloc( tess->alloc.userData,
-														    sizeof(TESSindex) * tess->vertexCount );
+    /* 
+     when useRangeIndex option is enabled, we allocate twice the number of vertices 
+     to store [from, to] ranges for each vertex
+     */
+    allocatedVertices = tess->vertexCount;
+    if (tess->useIndexRange)
+    {
+        allocatedVertices *= 2;
+    }
+    tess->vertexIndices = (TESSindex*)tess->alloc.memalloc( tess->alloc.userData,
+                                                            sizeof(TESSindex) * allocatedVertices );
 	if (!tess->vertexIndices)
 	{
 		tess->outOfMemory = 1;
@@ -899,7 +912,22 @@ void OutputContours( TESStesselator *tess, TESSmesh *mesh, int vertexSize )
 			*verts++ = edge->Org->coords[1];
 			if ( vertexSize > 2 )
 				*verts++ = edge->Org->coords[2];
-			*vertInds++ = edge->Org->idx;
+            if (tess->useIndexRange)
+            {
+                /*
+                 * Based off Spline's edgeCreateCallback from VectorExtrusionGeometry.ts
+                 *
+                 * mark each vertex using the two adjacent edge idx before [fromP, toP] and after [fromN, toN]
+                 * as including all verties in the range [toP, fromN].
+                 */
+                prev = edge->Onext->Sym;
+                *vertInds++ = prev->idx1; // toP
+                *vertInds++ = edge->idx0; // fromN
+            }
+            else
+            {
+                *vertInds++ = edge->Org->idx;
+            }
 			++vertCount;
 			edge = edge->Lnext;
 		}
@@ -971,6 +999,15 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 		/* Store the insertion number so that the vertex can be later recognized. */
 		e->Org->idx = tess->vertexIndexCounter++;
 
+        /* 
+         *  Based off Spline's edgeCreateCallback from VectorExtrusionGeometry.ts
+         *   e->idx is set to [vi, vi+1]
+         *   e->Sym->idx is set to [vi+1, vi]
+         *   where vi = e->Org->idx
+         */
+        e->idx0 = e->Sym->idx1 = e->Org->idx;
+        e->idx1 = e->Sym->idx0 = e->Org->idx + 1;
+
 		/* The winding of an edge says how the winding number changes as we
 		* cross from the edge''s right face to its left face.  We add the
 		* vertices in such an order that a CCW contour will add +1 to
@@ -991,6 +1028,9 @@ void tessSetOption( TESStesselator *tess, int option, int value )
 	case TESS_REVERSE_CONTOURS:
 		tess->reverseContours = value > 0 ? 1 : 0;
 		break;
+    case TESS_USE_INDEX_RANGE:
+        tess->useIndexRange = value > 0 ? 1 : 0;
+        break;
 	}
 }
 

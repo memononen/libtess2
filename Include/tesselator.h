@@ -122,11 +122,17 @@ enum TessElementType
 // TESS_REVERSE_CONTOURS
 //   If enabled, tessAddContour() will treat CW contours as CCW and vice versa
 //   Disabled by default.
+//
+// TESS_USE_INDEX_RANGE
+//   If enabled, tess will compute additional index information for boundary contours
+//	 Based of Spline's VectorExtrusionGeometry.ts
+//   Disabled by default.
 
 enum TessOption
 {
 	TESS_CONSTRAINED_DELAUNAY_TRIANGULATION,
-	TESS_REVERSE_CONTOURS
+	TESS_REVERSE_CONTOURS,
+	TESS_USE_INDEX_RANGE
 };
 
 typedef float TESSreal;
