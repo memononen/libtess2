@@ -19,7 +19,4 @@ add_library(tess2 STATIC
     Source/tess.h
 )
 
-target_include_directories(tess2
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}Include
-)
+target_include_directories(tess2 PUBLIC Include)
