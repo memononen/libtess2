@@ -32,6 +32,8 @@
 #ifndef DICT_LIST_H
 #define DICT_LIST_H
 
+#include "../Include/tesselator.h"
+
 typedef void *DictKey;
 typedef struct Dict Dict;
 typedef struct DictNode DictNode;
