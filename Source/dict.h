@@ -34,6 +34,7 @@
 
 #include "../Include/tesselator.h"
 #include "mesh.h"
+#include "sweep.h"
 
 typedef struct Dict Dict;
 typedef struct DictNode DictNode;
