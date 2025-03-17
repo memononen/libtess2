@@ -1,0 +1,2 @@
+build --cxxopt=-std=c++20
+common --enable_bzlmod
