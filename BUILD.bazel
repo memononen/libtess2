@@ -30,7 +30,7 @@ cc_library(
 
 cc_test(
     name = "libtess2_test",
-    srcs = ["libtess2_test.cc"],
+    srcs = ["Tests/libtess2_test.cc"],
     deps = [
         ":libtess2",
         "@googletest//:gtest_main",
