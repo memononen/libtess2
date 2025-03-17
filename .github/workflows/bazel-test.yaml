@@ -1,0 +1,18 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+name: BazelTest
+
+on: [push, workflow_dispatch]
+
+jobs:
+  bazel_test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Test
+      run: bazel test --test_output=errors --keep_going //...
