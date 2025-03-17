@@ -11,7 +11,8 @@ performance suffers from lots of small memory allocations. The main point of the
 refactoring has been the interface and memory allocation scheme.
 
 A lot of the GLU tesselator documentation applies to Libtess2 too (apart from
-the API), check out http://www.glprogramming.com/red/chapter11.html
+the API), check out The OpenGL Programming Guide (the "Red Book"), Chapter 11:
+Tessellators and Quadrics.
 
 Simple bucketed memory allocator (see Graphics Gems III for reference) was added
 which speeds up the code by order of magnitude (tests showed 15 to 50 times
