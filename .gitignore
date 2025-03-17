@@ -28,5 +28,5 @@ Build/*
 *xcuserdata*
 
 ## Bazel-related
-bazel-*
+/bazel-*
 MODULE.bazel.lock
