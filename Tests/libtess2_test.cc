@@ -1,8 +1,9 @@
+#include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <vector>
 
 #include "gtest/gtest.h"
-
 #include "tesselator.h"
 
 namespace {
@@ -62,6 +63,11 @@ void AddPolygonWithHole(TESStesselator* tess) {
                  kComponentCount * sizeof(TESSreal), inner_hole.size());
 }
 
+void AddPolyline(TESStesselator* tess, const std::vector<Vector2f>& polyline) {
+  tessAddContour(tess, kComponentCount, polyline.data(),
+                 kComponentCount * sizeof(TESSreal), polyline.size());
+}
+
 // Tests that tessellation succeeds when the default allocator is used.
 TEST(Libtess2Test, DefaultAllocSuccess) {
   TESStesselator* tess = tessNewTess(nullptr);
@@ -105,6 +111,74 @@ TEST(Libtess2Test, CustomAllocSuccess) {
   EXPECT_EQ(tessGetElementCount(tess), 8);
 
   tessDeleteTess(tess);
+}
+
+TEST(Libtess2Test, EmptyPolyline) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+  AddPolyline(tess, {});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 0);
+}
+
+TEST(Libtess2Test, SingleLine) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+  AddPolyline(tess, {{0, 0}, {0, 1}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 0);
+}
+
+TEST(Libtess2Test, SingleTriangle) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+  AddPolyline(tess, {{0, 0}, {0, 1}, {1, 0}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 1);
+}
+
+TEST(Libtess2Test, UnitQuad) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+  AddPolyline(tess, {{0, 0}, {0, 1}, {1, 1}, {1, 0}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 2);
+}
+
+TEST(Libtess2Test, FloatOverflowQuad) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+
+  constexpr float kFloatMin = std::numeric_limits<float>::min();
+  constexpr float kFloatMax = std::numeric_limits<float>::max();
+
+  // Add the polygon and tessellate it.
+  AddPolyline(tess, {{kFloatMin, kFloatMin},
+                     {kFloatMin, kFloatMax},
+                     {kFloatMax, kFloatMax},
+                     {kFloatMax, kFloatMin}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 0);
+}
+
+TEST(Libtess2Test, SingularityQuad) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+  AddPolyline(tess, {{0, 0}, {0, 0}, {0, 0}, {0, 0}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
 }  // namespace
