@@ -24,12 +24,13 @@ cc_library(
         "Source/tess.c",
         "Source/tess.h",
     ],
-    includes = ["Include/"],
     hdrs = ["Include/tesselator.h"],
+    includes = ["Include/"],
 )
 
 cc_test(
     name = "libtess2_test",
+    size = "small",
     srcs = ["Tests/libtess2_test.cc"],
     deps = [
         ":libtess2",
