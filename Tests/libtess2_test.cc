@@ -1,4 +1,3 @@
-#include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <vector>
@@ -68,11 +67,43 @@ void AddPolyline(TESStesselator* tess, const std::vector<Vector2f>& polyline) {
                  kComponentCount * sizeof(TESSreal), polyline.size());
 }
 
+class Libtess2Test : public testing::Test {
+ protected:
+  Libtess2Test(TESSalloc* alloc) { tess = tessNewTess(alloc); }
+
+  Libtess2Test() : Libtess2Test(nullptr) {}
+
+  ~Libtess2Test() {
+    if (tess != nullptr) {
+      tessDeleteTess(tess);
+    }
+  }
+
+  void SetUp() override { ASSERT_NE(tess, nullptr); }
+
+  TESStesselator* tess;
+};
+
+static TESSalloc custom_alloc{
+    HeapAlloc,
+    HeapRealloc,
+    HeapFree,
+    /*user_data=*/nullptr,
+    /*meshEdgeBucketSize=*/512,
+    /*meshVertexBucketSize=*/512,
+    /*meshFaceBucketSize=*/256,
+    /*dictNodeBucketSize=*/512,
+    /*regionBucketSize=*/256,
+    /*extraVertices=*/0,
+};
+
+class Libtess2CustomAllocTest : public Libtess2Test {
+ protected:
+  Libtess2CustomAllocTest() : Libtess2Test(&custom_alloc) {}
+};
+
 // Tests that tessellation succeeds when the default allocator is used.
-TEST(Libtess2Test, DefaultAllocSuccess) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
-
+TEST_F(Libtess2Test, DefaultAllocSuccess) {
   // Add the polygon and tessellate it.
   AddPolygonWithHole(tess);
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
@@ -81,26 +112,9 @@ TEST(Libtess2Test, DefaultAllocSuccess) {
 
   // It should take 8 triangles to represent the polygon with the hole.
   EXPECT_EQ(tessGetElementCount(tess), 8);
-
-  tessDeleteTess(tess);
 }
 
-TEST(Libtess2Test, CustomAllocSuccess) {
-  TESSalloc alloc = {
-      HeapAlloc,
-      HeapRealloc,
-      HeapFree,
-      /*user_data=*/nullptr,
-      /*meshEdgeBucketSize=*/512,
-      /*meshVertexBucketSize=*/512,
-      /*meshFaceBucketSize=*/256,
-      /*dictNodeBucketSize=*/512,
-      /*regionBucketSize=*/256,
-      /*extraVertices=*/0,
-  };
-  TESStesselator* tess = tessNewTess(&alloc);
-  ASSERT_NE(tess, nullptr);
-
+TEST_F(Libtess2CustomAllocTest, CustomAllocSuccess) {
   // Add the polygon and tessellate it.
   AddPolygonWithHole(tess);
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
@@ -109,13 +123,9 @@ TEST(Libtess2Test, CustomAllocSuccess) {
 
   // It should take 8 triangles to represent the polygon with the hole.
   EXPECT_EQ(tessGetElementCount(tess), 8);
-
-  tessDeleteTess(tess);
 }
 
-TEST(Libtess2Test, EmptyPolyline) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
+TEST_F(Libtess2Test, EmptyPolyline) {
   AddPolyline(tess, {});
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
@@ -123,9 +133,7 @@ TEST(Libtess2Test, EmptyPolyline) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
-TEST(Libtess2Test, SingleLine) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
+TEST_F(Libtess2Test, SingleLine) {
   AddPolyline(tess, {{0, 0}, {0, 1}});
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
@@ -133,9 +141,7 @@ TEST(Libtess2Test, SingleLine) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
-TEST(Libtess2Test, SingleTriangle) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
+TEST_F(Libtess2Test, SingleTriangle) {
   AddPolyline(tess, {{0, 0}, {0, 1}, {1, 0}});
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
@@ -143,9 +149,7 @@ TEST(Libtess2Test, SingleTriangle) {
   EXPECT_EQ(tessGetElementCount(tess), 1);
 }
 
-TEST(Libtess2Test, UnitQuad) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
+TEST_F(Libtess2Test, UnitQuad) {
   AddPolyline(tess, {{0, 0}, {0, 1}, {1, 1}, {1, 0}});
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
@@ -153,10 +157,7 @@ TEST(Libtess2Test, UnitQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 2);
 }
 
-TEST(Libtess2Test, FloatOverflowQuad) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
-
+TEST_F(Libtess2Test, FloatOverflowQuad) {
   constexpr float kFloatMin = std::numeric_limits<float>::min();
   constexpr float kFloatMax = std::numeric_limits<float>::max();
 
@@ -171,9 +172,7 @@ TEST(Libtess2Test, FloatOverflowQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
-TEST(Libtess2Test, SingularityQuad) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
+TEST_F(Libtess2Test, SingularityQuad) {
   AddPolyline(tess, {{0, 0}, {0, 0}, {0, 0}, {0, 0}});
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
@@ -181,9 +180,7 @@ TEST(Libtess2Test, SingularityQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
-TEST(Libtess2Test, DegenerateQuad) {
-  TESStesselator* tess = tessNewTess(nullptr);
-  ASSERT_NE(tess, nullptr);
+TEST_F(Libtess2Test, DegenerateQuad) {
   // A quad that's extremely close to a giant triangle, with an extra sliver.
   // Caused a segfault previously.
   AddPolyline(tess, {{0.f, 3.40282347e+38f},
