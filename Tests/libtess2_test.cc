@@ -181,4 +181,19 @@ TEST(Libtess2Test, SingularityQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
+TEST(Libtess2Test, DegenerateQuad) {
+  TESStesselator* tess = tessNewTess(nullptr);
+  ASSERT_NE(tess, nullptr);
+  // A quad that's extremely close to a giant triangle, with an extra sliver.
+  // Caused a segfault previously.
+  AddPolyline(tess, {{0.f, 3.40282347e+38f},
+                     {0.64113313f, -1.f},
+                     {-0.f, -0.f},
+                     {-3.40282347e+38f, 1.f}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 2);
+}
+
 }  // namespace
