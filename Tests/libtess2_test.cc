@@ -170,7 +170,7 @@ TEST_F(Libtess2Test, FloatOverflowQuad) {
   EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 0);
+  EXPECT_EQ(tessGetElementCount(tess), 2);
 }
 
 TEST_F(Libtess2Test, SingularityQuad) {
@@ -192,6 +192,30 @@ TEST_F(Libtess2Test, DegenerateQuad) {
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
   EXPECT_EQ(tessGetElementCount(tess), 2);
+}
+
+TEST_F(Libtess2Test, WidthOverflowsTri) {
+  AddPolyline(tess, {{-2e+38f, 0}, {0, 0}, {2e+38f, -1}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 1);
+}
+
+TEST_F(Libtess2Test, HeightOverflowsTri) {
+  AddPolyline(tess, {{0, 0}, {0, 2e+38f}, {-1, -2e+38f}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 1);
+}
+
+TEST_F(Libtess2Test, AreaOverflowsTri) {
+  AddPolyline(tess, {{-2e+37f, 0.f}, {0, 5}, {1e37f, -5}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 1);
 }
 
 TEST_F(Libtess2Test, NanQuad) {
