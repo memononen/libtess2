@@ -86,7 +86,8 @@ TESSreal tesedgeSign( TESSvertex *u, TESSvertex *v, TESSvertex *w )
 	gapR = w->s - v->s;
 
 	if( gapL + gapR > 0 ) {
-		return (v->t - w->t) * gapL + (v->t - u->t) * gapR;
+		TESSreal result = (v->t - w->t) * gapL + (v->t - u->t) * gapR;
+		return isnanf(result) ? 0 : result;
 	}
 	/* vertical line */
 	return 0;
