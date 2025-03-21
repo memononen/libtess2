@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <vector>
@@ -191,6 +192,17 @@ TEST_F(Libtess2Test, DegenerateQuad) {
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
   EXPECT_EQ(tessGetElementCount(tess), 2);
+}
+
+TEST_F(Libtess2Test, NanQuad) {
+  AddPolyline(tess, {{std::nan(""), std::nan("")},
+                     {std::nan(""), std::nan("")},
+                     {std::nan(""), std::nan("")},
+                     {std::nan(""), std::nan("")}});
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
 }  // namespace
