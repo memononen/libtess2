@@ -195,10 +195,10 @@ TEST_F(Libtess2Test, DegenerateQuad) {
 }
 
 TEST_F(Libtess2Test, NanQuad) {
-  AddPolyline(tess, {{std::nan(""), std::nan("")},
-                     {std::nan(""), std::nan("")},
-                     {std::nan(""), std::nan("")},
-                     {std::nan(""), std::nan("")}});
+  AddPolyline(tess, {{std::nanf(""), std::nanf("")},
+                     {std::nanf(""), std::nanf("")},
+                     {std::nanf(""), std::nanf("")},
+                     {std::nanf(""), std::nanf("")}});
   EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
