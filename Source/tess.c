@@ -89,6 +89,11 @@ static void ComputeNormal( TESStesselator *tess, TESSreal norm[3] )
 	int i;
 
 	v = vHead->next;
+	if (v == vHead) {
+		/* No vertex is initialized -- normal doesn't matter */
+		norm[0] = 0; norm[1] = 0; norm[2] = 1;
+		return;
+	}
 	for( i = 0; i < 3; ++i ) {
 		c = v->coords[i];
 		minVal[i] = c;
@@ -933,12 +938,11 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 		size = 3;
 
 	e = NULL;
-
 	for( i = 0; i < numVertices; ++i )
 	{
 		const TESSreal* coords = (const TESSreal*)src;
 		src += stride;
-		if (isnan(coords[0]) || isnan(coords[1]) || (size > 2 && isnan(coords[2]))) {
+		if (isnanf(coords[0]) || isnanf(coords[1]) || (size > 2 && isnanf(coords[2]))) {
 			// "Out of memory" isn't quite right, but give up and bail out
 			tess->outOfMemory = 1;
 			return;
@@ -1018,9 +1022,6 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 		tess->vertexIndices = 0;
 	}
 
-	// Copying because this is reset below and used to number the vertices
-        // in the tessellated mesh.
-	TESSindex inputVertexCount = tess->vertexIndexCounter;
 	tess->vertexIndexCounter = 0;
 
 	if (normal)
@@ -1045,10 +1046,6 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 	if (tess->outOfMemory || !tess->mesh)
 	{
 		return 0;
-	}
-	if (inputVertexCount == 0) {
-		// If there are no vertices, there's nothing to traverse.
-		return 1;
 	}
 
 	/* Determine the polygon normal and project vertices onto the plane
