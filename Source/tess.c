@@ -1018,6 +1018,9 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 		tess->vertexIndices = 0;
 	}
 
+	// Copying because this is reset below and used to number the vertices
+        // in the tessellated mesh.
+	TESSindex inputVertexCount = tess->vertexIndexCounter;
 	tess->vertexIndexCounter = 0;
 
 	if (normal)
@@ -1039,9 +1042,13 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 		return 0;
 	}
 
-	if (!tess->mesh)
+	if (tess->outOfMemory || !tess->mesh)
 	{
 		return 0;
+	}
+	if (inputVertexCount == 0) {
+		// If there are no vertices, there's nothing to traverse.
+		return 1;
 	}
 
 	/* Determine the polygon normal and project vertices onto the plane
