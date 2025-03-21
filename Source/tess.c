@@ -933,15 +933,19 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 		size = 3;
 
 	e = NULL;
-
+	TESSvertex* vHead = &tess->mesh->vHead;
 	for( i = 0; i < numVertices; ++i )
 	{
 		const TESSreal* coords = (const TESSreal*)src;
 		src += stride;
-		if (isnan(coords[0]) || isnan(coords[1]) || (size > 2 && isnan(coords[2]))) {
+		if (isnanf(coords[0]) || isnanf(coords[1]) || (size > 2 && isnanf(coords[2]))) {
 			// "Out of memory" isn't quite right, but give up and bail out
 			tess->outOfMemory = 1;
 			return;
+		}
+
+		if (vHead->next == NULL) {
+			vHead->next = vHead->prev = vHead;
 		}
 		if( e == NULL ) {
 			/* Make a self-loop (one vertex, one edge). */
@@ -1018,9 +1022,6 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 		tess->vertexIndices = 0;
 	}
 
-	// Copying because this is reset below and used to number the vertices
-        // in the tessellated mesh.
-	TESSindex inputVertexCount = tess->vertexIndexCounter;
 	tess->vertexIndexCounter = 0;
 
 	if (normal)
@@ -1046,8 +1047,8 @@ int tessTesselate( TESStesselator *tess, int windingRule, int elementType,
 	{
 		return 0;
 	}
-	if (inputVertexCount == 0) {
-		// If there are no vertices, there's nothing to traverse.
+	if (tess->mesh->vHead.next == NULL) {
+		// The mesh is empty, there's nothing to traverse.
 		return 1;
 	}
 
