@@ -614,7 +614,7 @@ TESSmesh *tessMeshNewMesh( TESSalloc* alloc )
 	e = &mesh->eHead;
 	eSym = &mesh->eHeadSym;
 
-	v->next = v->prev = v;
+	v->next = v->prev = NULL;
 	v->anEdge = NULL;
 
 	f->next = f->prev = f;
