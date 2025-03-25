@@ -229,4 +229,42 @@ TEST_F(Libtess2Test, NanQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
+TEST_F(Libtess2Test, DegenerateSquiggle) {
+  // Previously, this failed an assert while finding an intersection because
+  // that fell back to taking a midpoint between two coordinates in a way that
+  // could get the wrong answer because of the sum overflowing max float.
+  AddPolyline(tess, {{-1.f, 0.f},
+                     {0.868218958f, 0.f},
+                     {0.902460039f, 0.0649746507f},
+                     {-0.f, 0.854620099f},
+                     {-1.f, 0.784999669f},
+                     {0.f, 0.f},
+                     {-1.f, 1.f},
+                     {1.f, 1.f},
+                     {0.f, -1.f},
+                     {3.40282347e+38f, 3.40282347e+38f},
+                     {-1.f, -1.f},
+                     {-0.f, 0.442898333f},
+                     {0.33078745f, -0.f},
+                     {-0.f, 1.f},
+                     {-1.f, 0.f},
+                     {1.f, -0.f},
+                     {0.f, 0.186138511f},
+                     {0.212649569f, 0.886535764f},
+                     {1.f, 0.34795785f},
+                     {0.f, 0.788870096f},
+                     {0.853441715f, -1.f},
+                     {-1.f, 1.f},
+                     {1.f, -0.994903505f},
+                     {1.f, 0.105880626f},
+                     {3.40282347e+38f, 3.40282347e+38f},
+                     {-1.f, 3.40282347e+38f},
+                     {-0.f, 0.34419331f},
+                     {1.f, 1.f}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetElementCount(tess), 13);
+}
+
 }  // namespace
