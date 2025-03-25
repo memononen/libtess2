@@ -25,7 +25,9 @@ cc_library(
         "Source/tess.h",
     ],
     hdrs = ["Include/tesselator.h"],
+    include_prefix = "libtess2",
     includes = ["Include/"],
+    strip_include_prefix = "Include",
 )
 
 cc_test(
