@@ -942,7 +942,7 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 	{
 		const TESSreal* coords = (const TESSreal*)src;
 		src += stride;
-		if (isnanf(coords[0]) || isnanf(coords[1]) || (size > 2 && isnanf(coords[2]))) {
+		if (isnan(coords[0]) || isnan(coords[1]) || (size > 2 && isnan(coords[2]))) {
 			// "Out of memory" isn't quite right, but give up and bail out
 			tess->outOfMemory = 1;
 			return;
