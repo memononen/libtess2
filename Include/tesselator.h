@@ -38,6 +38,10 @@ extern "C" {
 
 // See OpenGL Red Book for description of the winding rules
 // http://www.glprogramming.com/red/chapter11.html
+#if defined( __APPLE_CC__)
+	#include <TargetConditionals.h>
+#endif
+
 enum TessWindingRule
 {
 	TESS_WINDING_ODD,
@@ -130,11 +134,17 @@ enum TessOption
 };
 
 typedef float TESSreal;
-typedef int TESSindex;
+//note this shouldn't be defined(TARGET_OS_IPHONE) as its always defined either 0 or 1
+#if TARGET_OS_IPHONE || ANDROID || __ARMEL__
+typedef unsigned short TESSindex;
+#else
+typedef unsigned int TESSindex;
+#endif
+
 typedef struct TESStesselator TESStesselator;
 typedef struct TESSalloc TESSalloc;
 
-#define TESS_UNDEF (~(TESSindex)0)
+#define TESS_UNDEF ((TESSindex)(~(TESSindex)0))
 
 #define TESS_NOTUSED(v) do { (void)(1 ? (void)0 : ( (void)(v) ) ); } while(0)
 
