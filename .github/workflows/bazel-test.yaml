@@ -16,3 +16,6 @@ jobs:
 
     - name: Test
       run: bazel test --test_output=errors --keep_going //...
+
+    - name: Opt-Mode Test
+      run: bazel test -c opt --test_output=errors --keep_going //...
