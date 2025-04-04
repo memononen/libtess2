@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(tess2 VERSION 1.0.1 LANGUAGES C)
-include_directories(Include)
+project(tess2 VERSION 1.0.2 LANGUAGES C)
+
+install(FILES Include/tesselator.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_library(tess2 STATIC
     Source/bucketalloc.c
@@ -19,4 +21,15 @@ add_library(tess2 STATIC
     Source/tess.h
 )
 
-target_include_directories(tess2 PUBLIC Include)
+target_include_directories(
+    tess2
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
+)
+
+install(
+  TARGETS tess2
+  EXPORT tess2
+  LIBRARY DESTINATION  "${CMAKE_INSTALL_LIBDIR}"
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
