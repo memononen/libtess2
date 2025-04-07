@@ -496,7 +496,11 @@ static int CheckForRightSplice( TESStesselator *tess, ActiveRegion *regUp )
 		if( EdgeSign( eUp->Dst, eLo->Org, eUp->Org ) <= 0 ) return FALSE;
 
 		/* eLo->Org appears to be above eUp, so splice eLo->Org into eUp */
-		RegionAbove(regUp)->dirty = regUp->dirty = TRUE;
+		regUp->dirty = TRUE;
+		ActiveRegion* regionAbove = RegionAbove(regUp);
+		if (regionAbove != NULL) {
+			regionAbove->dirty = TRUE;
+		}
 		if (tessMeshSplitEdge( tess->mesh, eUp->Sym ) == NULL) longjmp(tess->env,1);
 		if ( !tessMeshSplice( tess->mesh, eLo->Oprev, eUp ) ) longjmp(tess->env,1);
 	}
@@ -534,7 +538,11 @@ static int CheckForLeftSplice( TESStesselator *tess, ActiveRegion *regUp )
 		if( EdgeSign( eUp->Dst, eLo->Dst, eUp->Org ) < 0 ) return FALSE;
 
 		/* eLo->Dst is above eUp, so splice eLo->Dst into eUp */
-		RegionAbove(regUp)->dirty = regUp->dirty = TRUE;
+		regUp->dirty = TRUE;
+		ActiveRegion* regionAbove = RegionAbove(regUp);
+		if (regionAbove != NULL) {
+			regionAbove->dirty = TRUE;
+		}
 		e = tessMeshSplitEdge( tess->mesh, eUp );
 		if (e == NULL) longjmp(tess->env,1);
 		if ( !tessMeshSplice( tess->mesh, eLo->Sym, e ) ) longjmp(tess->env,1);
@@ -1115,7 +1123,7 @@ static void InitEdgeDict( TESStesselator *tess )
 	TESSreal w, h;
 	TESSreal smin, smax, tmin, tmax;
 
-	tess->dict = dictNewDict( &tess->alloc, tess, (int (*)(void *, DictKey, DictKey)) EdgeLeq );
+	tess->dict = dictNewDict( &tess->alloc, tess, EdgeLeq );
 	if (tess->dict == NULL) longjmp(tess->env,1);
 
 	/* If the bbox is empty, ensure that sentinels are not coincident by slightly enlarging it. */
@@ -1135,7 +1143,9 @@ static void InitEdgeDict( TESStesselator *tess )
 static void DoneEdgeDict( TESStesselator *tess )
 {
 	ActiveRegion *reg;
+#ifndef NDEBUG
 	int fixedEdges = 0;
+#endif
 
 	while( (reg = (ActiveRegion *)dictKey( dictMin( tess->dict ))) != NULL ) {
 		/*

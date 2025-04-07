@@ -1,0 +1,41 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+# libtess2, a polygon tesselator library
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "libtess2",
+    srcs = [
+        "Source/bucketalloc.c",
+        "Source/bucketalloc.h",
+        "Source/dict.c",
+        "Source/dict.h",
+        "Source/geom.c",
+        "Source/geom.h",
+        "Source/mesh.c",
+        "Source/mesh.h",
+        "Source/priorityq.c",
+        "Source/priorityq.h",
+        "Source/sweep.c",
+        "Source/sweep.h",
+        "Source/tess.c",
+        "Source/tess.h",
+    ],
+    hdrs = ["Include/tesselator.h"],
+    include_prefix = "libtess2",
+    includes = ["Include/"],
+    strip_include_prefix = "Include",
+)
+
+cc_test(
+    name = "libtess2_test",
+    size = "small",
+    srcs = ["Tests/libtess2_test.cc"],
+    deps = [
+        ":libtess2",
+        "@googletest//:gtest_main",
+    ],
+)
