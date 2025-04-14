@@ -1,0 +1,22 @@
+Source: libtess2
+Priority: optional
+Maintainer: Paul Morelle <paul@scengrafics.com>
+Build-Depends: debhelper (>= 9),
+ libglew-dev,
+ libglfw3-dev,
+ libglu1-mesa-dev,
+ pkg-config,
+ premake4
+Standards-Version: 3.9.8
+Section: libs
+Homepage: https://github.com/memononen/libtess2
+Vcs-Git: https://github.com/memononen/libtess2.git
+Vcs-Browser: https://github.com/memononen/libtess2
+
+Package: libtess2-dev
+Section: libdevel
+Architecture: any
+Depends: libglew-dev,
+ libglfw3-dev,
+ libglu1-mesa
+Description: Game and tools oriented refactored version of GLU tesselator
