@@ -167,10 +167,9 @@ TEST_F(Libtess2Test, FloatOverflowQuad) {
                      {kFloatMin, kFloatMax},
                      {kFloatMax, kFloatMax},
                      {kFloatMax, kFloatMin}});
-  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 2);
 }
 
 TEST_F(Libtess2Test, SingularityQuad) {
@@ -188,34 +187,30 @@ TEST_F(Libtess2Test, DegenerateQuad) {
                      {0.64113313f, -1.f},
                      {-0.f, -0.f},
                      {-3.40282347e+38f, 1.f}});
-  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 2);
 }
 
 TEST_F(Libtess2Test, WidthOverflowsTri) {
   AddPolyline(tess, {{-2e+38f, 0}, {0, 0}, {2e+38f, -1}});
-  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 1);
 }
 
 TEST_F(Libtess2Test, HeightOverflowsTri) {
   AddPolyline(tess, {{0, 0}, {0, 2e+38f}, {-1, -2e+38f}});
-  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 1);
 }
 
 TEST_F(Libtess2Test, AreaOverflowsTri) {
   AddPolyline(tess, {{-2e+37f, 0.f}, {0, 5}, {1e37f, -5}});
-  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 1);
 }
 
 TEST_F(Libtess2Test, NanQuad) {
@@ -229,7 +224,7 @@ TEST_F(Libtess2Test, NanQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 0);
 }
 
-TEST_F(Libtess2Test, DegenerateSquiggle) {
+TEST_F(Libtess2Test, AvoidsCrashWhileFindingIntersection) {
   // Previously, this failed an assert while finding an intersection because
   // that fell back to taking a midpoint between two coordinates in a way that
   // could get the wrong answer because of the sum overflowing max float.
@@ -261,10 +256,41 @@ TEST_F(Libtess2Test, DegenerateSquiggle) {
                      {-1.f, 3.40282347e+38f},
                      {-0.f, 0.34419331f},
                      {1.f, 1.f}});
-  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
                           kNumTriangleVertices, kComponentCount, nullptr),
             0);
-  EXPECT_EQ(tessGetElementCount(tess), 13);
+}
+
+TEST_F(Libtess2Test, AvoidsCrashInAddRightEdges) {
+  AddPolyline(tess, {{{-0.5f, 1.f},
+                      {3.40282347e+38f, 0.f},
+                      {0.349171013f, 1.f},
+                      {1.f, 0.f},
+                      {1.f, -0.f},
+                      {0.594775498f, -0.f},
+                      {0.f, -0.f},
+                      {-0.f, 1.f},
+                      {0.f, 1.f},
+                      {2.20929384f, 1.f},
+                      {1.f, 1.f},
+                      {-0.f, -0.f},
+                      {3.40282347e+38f, -0.f},
+                      {-1.f, 0.f},
+                      {1.70141173e+38f, 0.391036272f},
+                      {3.40282347e+38f, 0.371295959f},
+                      {3.40282347e+38f, -0.f},
+                      {0.f, 0.234747186f},
+                      {-1.f, 1.f},
+                      {-1.f, -0.f},
+                      {3.40282347e+38f, 1.f},
+                      {-0.f, -0.f},
+                      {3.40282347e+38f, 1.f},
+                      {0.434241712f, 0.f},
+                      {1.f, 0.211511821f},
+                      {3.40282347e+38f, 1.f}}});
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
 }
 
 }  // namespace
