@@ -37,6 +37,7 @@
 #include "mesh.h"
 #include "sweep.h"
 #include "geom.h"
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +61,12 @@ static void Normalize( TESSreal v[3] )
 #endif
 
 #define ABS(x)	((x) < 0 ? -(x) : (x))
+
+// Coords need to be limited to this range to avoid overflow when computing
+// the projection vectors of the sentinel edges. This is based on logic which
+// computes the bounding box of the projection vectors in InitEdgeDict.
+static float kMaxSafeCoord = (FLT_MAX - 0.01f) / 2.0f;
+static float kMinSafeCoord = (-FLT_MAX + 0.01f) / 2.0f;
 
 static int LongAxis( TESSreal v[3] )
 {
@@ -942,7 +949,15 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 	{
 		const TESSreal* coords = (const TESSreal*)src;
 		src += stride;
-		if (isnan(coords[0]) || isnan(coords[1]) || (size > 2 && isnan(coords[2]))) {
+		if (isnan(coords[0]) ||
+		    coords[0] < kMinSafeCoord ||
+		    coords[0] > kMaxSafeCoord ||
+		    isnan(coords[1]) ||
+		    coords[1] < kMinSafeCoord ||
+		    coords[1] > kMaxSafeCoord
+		    || (size > 2 && (isnan(coords[2]) ||
+		        coords[2] < kMinSafeCoord ||
+		        coords[2] > kMaxSafeCoord))) {
 			// "Out of memory" isn't quite right, but give up and bail out
 			tess->outOfMemory = 1;
 			return;
