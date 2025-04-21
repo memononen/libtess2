@@ -494,6 +494,7 @@ TESShalfEdge *tessMeshConnect( TESSmesh *mesh, TESShalfEdge *eOrg, TESShalfEdge 
 	eNewSym = eNew->Sym;
 
 	if( eDst->Lface != eOrg->Lface ) {
+		if (eDst->Lface == NULL) return NULL;
 		/* We are connecting two disjoint loops -- destroy eDst->Lface */
 		joiningLoops = TRUE;
 		KillFace( mesh, eDst->Lface, eOrg->Lface );
