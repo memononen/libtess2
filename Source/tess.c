@@ -918,6 +918,11 @@ void OutputContours( TESStesselator *tess, TESSmesh *mesh, int vertexSize )
 	}
 }
 
+int IsValidCoord(TESSreal coord) {
+  return coord <= TESS_MAX_VALID_INPUT_VALUE &&
+      coord >= TESS_MIN_VALID_INPUT_VALUE;
+}
+
 void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 					int stride, int numVertices )
 {
@@ -942,7 +947,9 @@ void tessAddContour( TESStesselator *tess, int size, const void* vertices,
 	{
 		const TESSreal* coords = (const TESSreal*)src;
 		src += stride;
-		if (isnan(coords[0]) || isnan(coords[1]) || (size > 2 && isnan(coords[2]))) {
+		if (!IsValidCoord(coords[0]) ||
+		    !IsValidCoord(coords[1]) ||
+		    (size > 2 && !IsValidCoord(coords[2]))) {
 			// "Out of memory" isn't quite right, but give up and bail out
 			tess->outOfMemory = 1;
 			return;

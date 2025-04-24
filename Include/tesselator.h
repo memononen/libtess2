@@ -138,6 +138,14 @@ typedef struct TESSalloc TESSalloc;
 
 #define TESS_NOTUSED(v) do { (void)(1 ? (void)0 : ( (void)(v) ) ); } while(0)
 
+// These two constants define the valid input coordinate range the library is
+// able to operate on. Tesselation will fail if any of the coordinates are not
+// within this range. Clients are responsible for dealing with inputs outside of
+// this range (e.g. clamping or filtering invalid points, scaling down the
+// coordinate space).
+#define TESS_MAX_VALID_INPUT_VALUE ((TESSreal) (1<<23))
+#define TESS_MIN_VALID_INPUT_VALUE (-TESS_MAX_VALID_INPUT_VALUE)
+
 // Custom memory allocator interface.
 // The internal memory allocator allocates mesh edges, vertices and faces
 // as well as dictionary nodes and active regions in buckets and uses simple
