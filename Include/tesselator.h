@@ -222,7 +222,8 @@ void tessSetOption( TESStesselator *tess, int option, int value );
 //   vertexSize - defines the number of coordinates in tesselation result vertex, must be 2 or 3.
 //   normal - defines the normal of the input contours, of null the normal is calculated automatically.
 // Returns:
-//   1 if succeed, 0 if failed.
+//   1 if succeed, 0 if failed (tessGetStatus can be used after to get a more
+//   specific failure status)
 int tessTesselate( TESStesselator *tess, int windingRule, int elementType, int polySize, int vertexSize, const TESSreal* normal );
 
 // tessGetVertexCount() - Returns number of vertices in the tesselated output.
@@ -242,6 +243,18 @@ int tessGetElementCount( TESStesselator *tess );
 
 // tessGetElements() - Returns pointer to the first element.
 const TESSindex* tessGetElements( TESStesselator *tess );
+
+typedef enum TESSstatus {
+  TESS_STATUS_OK,
+  TESS_STATUS_OUT_OF_MEMORY,
+  TESS_STATUS_INVALID_INPUT
+} TESSstatus;
+
+// Return the success or failure status. If tessTesselate fails (or will fail,
+// e.g. after invalid data is passed to tessAddContour), this can indicate
+// more specifically why. It can also be checked after tessAddContour to
+// see whether to bail out early.
+TESSstatus tessGetStatus( TESStesselator *tess );
 
 #ifdef __cplusplus
 };
