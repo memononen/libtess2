@@ -34,6 +34,7 @@
 #include <setjmp.h>
 #include "bucketalloc.h"
 #include "tess.h"
+#include "tesselator.h"
 #include "mesh.h"
 #include "sweep.h"
 #include "geom.h"
