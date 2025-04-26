@@ -158,6 +158,22 @@ TEST_F(Libtess2Test, UnitQuad) {
   EXPECT_EQ(tessGetElementCount(tess), 2);
 }
 
+TEST_F(Libtess2Test, GetStatusInvalidInput) {
+  AddPolyline(tess, {{-2e+37f, 0.f}, {0, 5}, {1e37f, -5}});
+  EXPECT_EQ(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetStatus(tess), TESS_STATUS_INVALID_INPUT);
+}
+
+TEST_F(Libtess2Test, GetStatusOk) {
+  AddPolyline(tess, {{0, 0}, {0, 1}, {1, 1}, {1, 0}});
+  EXPECT_NE(tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_POLYGONS,
+                          kNumTriangleVertices, kComponentCount, nullptr),
+            0);
+  EXPECT_EQ(tessGetStatus(tess), TESS_STATUS_OK);
+}
+
 TEST_F(Libtess2Test, FloatOverflowQuad) {
   constexpr float kFloatMin = std::numeric_limits<float>::min();
   constexpr float kFloatMax = std::numeric_limits<float>::max();
