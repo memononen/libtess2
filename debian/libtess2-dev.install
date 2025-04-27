@@ -1,0 +1,3 @@
+Build/libtess2.a usr/lib
+Build/copyright usr/share/doc/libtess2-dev
+Include/tesselator.h usr/include
