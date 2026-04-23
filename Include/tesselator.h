@@ -38,6 +38,10 @@ extern "C" {
 
 // See OpenGL Red Book for description of the winding rules
 // http://www.glprogramming.com/red/chapter11.html
+#if defined( __APPLE_CC__)
+	#include <TargetConditionals.h>
+#endif
+
 enum TessWindingRule
 {
 	TESS_WINDING_ODD,
@@ -130,11 +134,28 @@ enum TessOption
 };
 
 typedef float TESSreal;
-typedef int TESSindex;
+//note this shouldn't be defined(TARGET_OS_IPHONE) as its always defined either 0 or 1
+#ifndef TESSindex
+    #if defined(TESS_INDEX_SHORT) || defined(TESS_USE_SHORT_INDEX)
+        typedef unsigned short TESSindex;
+    #elif defined(TESS_INDEX_INT) || defined(TESS_USE_INT_INDEX)
+        typedef unsigned int TESSindex;
+    #elif defined(TARGET_OS_IPHONE) || defined(TARGET_OS_IOS) || \
+          defined(ANDROID) || defined(TARGET_ANDROID) || \
+          defined(__ARMEL__) || defined(__arm__) || defined(__aarch32__) || \
+          defined(__EMSCRIPTEN__) || defined(TARGET_EMSCRIPTEN) || \
+          defined(TARGET_OS_WATCHOS) || defined(TARGET_OS_XROS) || \
+          defined(TARGET_OS_VISION) || defined(__QNX__)
+        typedef unsigned short TESSindex;
+    #else
+        typedef unsigned int TESSindex;
+    #endif
+#endif
+
 typedef struct TESStesselator TESStesselator;
 typedef struct TESSalloc TESSalloc;
 
-#define TESS_UNDEF (~(TESSindex)0)
+#define TESS_UNDEF ((TESSindex)(~(TESSindex)0))
 
 #define TESS_NOTUSED(v) do { (void)(1 ? (void)0 : ( (void)(v) ) ); } while(0)
 
